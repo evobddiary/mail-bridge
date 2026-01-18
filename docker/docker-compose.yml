@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  mail-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mail-bridge:latest
+    container_name: mail-bridge-test
+    restart: unless-stopped
+    
+    # Environment variables for POP3 passwords
+    environment:
+      - PERSONAL_POP_PASS=${PERSONAL_POP_PASS:-test_password_1}
+      - WORK_POP_PASS=${WORK_POP_PASS:-test_password_2}
+      - SECONDARY_POP_PASS=${SECONDARY_POP_PASS:-test_password_3}
+    
+    # Volume mappings
+    volumes:
+      - ./config:/config:ro
+      - ./maildata:/maildata
+      - ./logs:/logs
+      - ./scripts:/scripts:ro
+    
+    # Port mapping for IMAP access (optional - for testing)
+    ports:
+      - "143:143"   # IMAP
+      - "993:993"   # IMAPS (if configured later)
+      - "8787:8787" # Web interface
+    
+    # Network configuration
+    networks:
+      - mail-network
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "fetchmail"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  mail-network:
+    driver: bridge
+
+# Optional: Add a simple IMAP client for testing
+  imap-test-client:
+    image: alpine:latest
+    container_name: imap-test-client
+    depends_on:
+      - mail-bridge
+    networks:
+      - mail-network
+    command: sh -c "apk add --no-cache curl && sleep infinity"
+    profiles:
+      - testing
