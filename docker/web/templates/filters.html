@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Filters - MailDocker{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>Email Filtering Rules</h2>
+        <button onclick="addFilterRule()" class="btn">Add New Rule</button>
+    </div>
+    
+    <p>Filter rules automatically organize your emails into folders and trigger notifications based on conditions.</p>
+    
+    {% if filter_rules %}
+        <div id="filter-rules">
+            {% for rule in filter_rules %}
+            <div class="card" style="margin-bottom: 1rem; border-left: 4px solid #667eea;">
+                <h4>{{ rule.name }}</h4>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin: 1rem 0;">
+                    <div>
+                        <strong>Conditions:</strong>
+                        <ul style="margin-top: 0.5rem;">
+                            {% if rule.conditions.subject_contains %}
+                                <li>Subject contains: {{ rule.conditions.subject_contains|join(', ') }}</li>
+                            {% endif %}
+                            {% if rule.conditions.from_contains %}
+                                <li>From contains: {{ rule.conditions.from_contains|join(', ') }}</li>
+                            {% endif %}
+                            {% if rule.conditions.body_contains %}
+                                <li>Body contains: {{ rule.conditions.body_contains|join(', ') }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <strong>Actions:</strong>
+                        <ul style="margin-top: 0.5rem;">
+                            {% if rule.action.folder %}
+                                <li>Move to: {{ rule.action.folder }}</li>
+                            {% endif %}
+                            {% if rule.action.mark_as %}
+                                <li>Mark as: {{ rule.action.mark_as }}</li>
+                            {% endif %}
+                            {% if rule.action.push_notify %}
+                                <li>Send push notification</li>
+                            {% endif %}
+                            {% if rule.action.push_title %}
+                                <li>Push title: {{ rule.action.push_title }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="actions">
+                    <button onclick="editFilterRule('{{ loop.index0 }}')" class="btn secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Edit</button>
+                    <button onclick="deleteFilterRule('{{ loop.index0 }}')" class="btn danger" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Delete</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert info">
+            <h3>No filter rules configured</h3>
+            <p>Create filter rules to automatically organize your emails into folders and trigger notifications.</p>
+            <div style="margin-top: 1rem;">
+                <button onclick="addFilterRule()" class="btn">Add Your First Rule</button>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Filter Rule Examples</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div>
+            <h3>📄 Invoice Filter</h3>
+            <div class="alert info" style="margin-bottom: 1rem;">
+                <strong>Conditions:</strong> Subject contains "invoice", "receipt", "bill"<br>
+                <strong>Actions:</strong> Move to "Invoices" folder, send notification
+            </div>
+        </div>
+        
+        <div>
+            <h3>⭐ Important Senders</h3>
+            <div class="alert info" style="margin-bottom: 1rem;">
+                <strong>Conditions:</strong> From contains "boss@company.com"<br>
+                <strong>Actions:</strong> Move to "Priority" folder, mark as important
+            </div>
+        </div>
+        
+        <div>
+            <h3>📰 Newsletter Filter</h3>
+            <div class="alert info" style="margin-bottom: 1rem;">
+                <strong>Conditions:</strong> From contains "newsletter", "noreply"<br>
+                <strong>Actions:</strong> Move to "Archive" folder, no notification
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Rule Modal (hidden by default) -->
+<div id="filterModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 8px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+        <h3 id="modalTitle">Add Filter Rule</h3>
+        
+        <form id="filterForm">
+            <div class="form-group">
+                <label for="ruleName">Rule Name *</label>
+                <input type="text" id="ruleName" required>
+            </div>
+            
+            <h4>Conditions</h4>
+            
+            <div class="form-group">
+                <label for="subjectContains">Subject contains</label>
+                <input type="text" id="subjectContains" placeholder="invoice, receipt, bill">
+                <small>Comma-separated keywords</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="fromContains">From contains</label>
+                <input type="text" id="fromContains" placeholder="boss@company.com, important@domain.com">
+                <small>Comma-separated email addresses or domains</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="bodyContains">Body contains</label>
+                <input type="text" id="bodyContains" placeholder="urgent, asap">
+                <small>Comma-separated keywords</small>
+            </div>
+            
+            <h4>Actions</h4>
+            
+            <div class="form-group">
+                <label for="actionFolder">Move to folder</label>
+                <input type="text" id="actionFolder" placeholder="INBOX, Invoices, Priority">
+                <small>Folder name (will be created if it doesn't exist)</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="actionMarkAs">Mark as</label>
+                <select id="actionMarkAs">
+                    <option value="">No marking</option>
+                    <option value="important">Important</option>
+                    <option value="read">Read</option>
+                    <option value="unread">Unread</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="pushNotify">
+                    <label for="pushNotify">Send push notification</label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="pushTitle">Push notification title</label>
+                <input type="text" id="pushTitle" placeholder="Important Email Received">
+            </div>
+            
+            <div class="actions">
+                <button type="submit" class="btn">Save Rule</button>
+                <button type="button" onclick="closeFilterModal()" class="btn secondary">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentFilterIndex = -1;
+
+function addFilterRule() {
+    currentFilterIndex = -1;
+    document.getElementById('modalTitle').textContent = 'Add Filter Rule';
+    document.getElementById('filterForm').reset();
+    document.getElementById('filterModal').style.display = 'block';
+}
+
+function editFilterRule(index) {
+    currentFilterIndex = index;
+    // This would load the existing rule data into the form
+    // For now, just show the modal
+    document.getElementById('modalTitle').textContent = 'Edit Filter Rule';
+    document.getElementById('filterModal').style.display = 'block';
+}
+
+function deleteFilterRule(index) {
+    if (confirm('Are you sure you want to delete this filter rule?')) {
+        // This would delete the rule
+        alert('Filter rule deleted (functionality to be implemented)');
+    }
+}
+
+function closeFilterModal() {
+    document.getElementById('filterModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+document.getElementById('filterModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeFilterModal();
+    }
+});
+
+// Handle form submission
+document.getElementById('filterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        name: document.getElementById('ruleName').value,
+        conditions: {
+            subject_contains: document.getElementById('subjectContains').value.split(',').map(s => s.trim()).filter(s => s),
+            from_contains: document.getElementById('fromContains').value.split(',').map(s => s.trim()).filter(s => s),
+            body_contains: document.getElementById('bodyContains').value.split(',').map(s => s.trim()).filter(s => s)
+        },
+        action: {
+            folder: document.getElementById('actionFolder').value,
+            mark_as: document.getElementById('actionMarkAs').value,
+            push_notify: document.getElementById('pushNotify').checked,
+            push_title: document.getElementById('pushTitle').value
+        }
+    };
+    
+    // This would save the filter rule
+    console.log('Saving filter rule:', formData);
+    alert('Filter rule saved (functionality to be implemented)');
+    closeFilterModal();
+});
+</script>
+{% endblock %}

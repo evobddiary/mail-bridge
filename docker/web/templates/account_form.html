@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}{{ "Add" if action == "add" }} Account - MailDocker{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>{{ "Add New" if action == "add" }} Edit POP3 Account</h2>
+    
+    <form method="post">
+        <div class="form-group">
+            <label for="name">Account Name *</label>
+            <input type="text" id="name" name="name" value="{{ account.name or '' }}" required>
+            <small>A descriptive name for this account (e.g., "Personal Gmail")</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="pop_server">POP3 Server *</label>
+            <input type="text" id="pop_server" name="pop_server" value="{{ account.pop_server or '' }}" required>
+            <small>e.g., pop.gmail.com, pop-mail.outlook.com</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="pop_port">POP3 Port</label>
+            <input type="number" id="pop_port" name="pop_port" value="{{ account.get('pop_port', 995) }}" min="1" max="65535">
+            <small>Usually 995 for SSL, 110 for non-SSL</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="user">Email Address *</label>
+            <input type="email" id="user" name="user" value="{{ account.user or '' }}" required>
+            <small>Your full email address</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="password_env">Password Environment Variable *</label>
+            <input type="text" id="password_env" name="password_env" value="{{ account.password_env or '' }}" required>
+            <small>Environment variable name containing the password (e.g., PERSONAL_POP_PASS)</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="imap_user">Local IMAP User *</label>
+            <input type="text" id="imap_user" name="imap_user" value="{{ account.imap_user or '' }}" required>
+            <small>Username for accessing emails via IMAP (e.g., user1, personal)</small>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="ssl" name="ssl" {% if account.get('ssl', True) %}checked{% endif %}>
+                    <label for="ssl">Use SSL/TLS</label>
+                </div>
+                <small>Recommended for security</small>
+            </div>
+            
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="keep" name="keep" {% if account.get('keep', True) %}checked{% endif %}>
+                    <label for="keep">Keep emails on server</label>
+                </div>
+                <small>Don't delete emails after fetching</small>
+            </div>
+            
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="enabled" name="enabled" {% if account.get('enabled', True) %}checked{% endif %}>
+                    <label for="enabled">Enable this account</label>
+                </div>
+                <small>Account will be processed when enabled</small>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button type="submit" class="btn">{{ "Add Account" if action == "add" else "Update Account" }}</button>
+            <a href="{{ url_for('accounts') }}" class="btn secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Common POP3 Settings</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div>
+            <h3>📧 Gmail</h3>
+            <table class="table" style="font-size: 0.9rem;">
+                <tr>
+                    <td><strong>Server:</strong></td>
+                    <td>pop.gmail.com</td>
+                </tr>
+                <tr>
+                    <td><strong>Port:</strong></td>
+                    <td>995</td>
+                </tr>
+                <tr>
+                    <td><strong>SSL:</strong></td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <td><strong>Note:</strong></td>
+                    <td>Enable POP in Gmail settings</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div>
+            <h3>📧 Outlook</h3>
+            <table class="table" style="font-size: 0.9rem;">
+                <tr>
+                    <td><strong>Server:</strong></td>
+                    <td>pop-mail.outlook.com</td>
+                </tr>
+                <tr>
+                    <td><strong>Port:</strong></td>
+                    <td>995</td>
+                </tr>
+                <tr>
+                    <td><strong>SSL:</strong></td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <td><strong>Note:</strong></td>
+                    <td>Enable POP in Outlook settings</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div>
+            <h3>📧 Yahoo</h3>
+            <table class="table" style="font-size: 0.9rem;">
+                <tr>
+                    <td><strong>Server:</strong></td>
+                    <td>pop.mail.yahoo.com</td>
+                </tr>
+                <tr>
+                    <td><strong>Port:</strong></td>
+                    <td>995</td>
+                </tr>
+                <tr>
+                    <td><strong>SSL:</strong></td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <td><strong>Note:</strong></td>
+                    <td>Use App Password if 2FA enabled</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Environment Variables Setup</h2>
+    <p>Passwords are stored as environment variables for security. Set them in your Docker environment:</p>
+    
+    <div class="alert info">
+        <h4>Example Docker Environment Variables:</h4>
+        <pre style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-top: 0.5rem;">
+environment:
+  - PERSONAL_POP_PASS=your_gmail_password
+  - WORK_POP_PASS=your_work_password
+  - SECONDARY_POP_PASS=your_secondary_password</pre>
+    </div>
+    
+    <p><strong>Important:</strong> Never store passwords directly in configuration files. Always use environment variables.</p>
+</div>
+{% endblock %}

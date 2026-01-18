@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Status - MailDocker{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">
+            {% if fetchmail_running %}
+                🟢
+            {% else %}
+                🔴
+            {% endif %}
+        </div>
+        <div class="stat-label">Fetchmail Status</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">📊</div>
+        <div class="stat-label">Emails Today</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">⚡</div>
+        <div class="stat-label">System Load</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">💾</div>
+        <div class="stat-label">Disk Usage</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Service Status</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div>
+            <h3>📧 Fetchmail</h3>
+            <div class="alert {% if fetchmail_running %}success{% else %}error{% endif %}">
+                <strong>Status:</strong> {% if fetchmail_running %}Running{% else %}Stopped{% endif %}<br>
+                <strong>Last Check:</strong> {{ moment()|default('Unknown') }}<br>
+                <strong>PID:</strong> {% if fetchmail_running %}Active{% else %}N/A{% endif %}
+            </div>
+        </div>
+        
+        <div>
+            <h3>📬 Dovecot IMAP</h3>
+            <div class="alert success">
+                <strong>Status:</strong> Running<br>
+                <strong>Port:</strong> 143 (IMAP)<br>
+                <strong>SSL Port:</strong> 993 (IMAPS)
+            </div>
+        </div>
+        
+        <div>
+            <h3>🌐 Web Interface</h3>
+            <div class="alert success">
+                <strong>Status:</strong> Running<br>
+                <strong>Port:</strong> 8787<br>
+                <strong>Version:</strong> 1.0.0
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem;">
+        <button onclick="restartServices()" class="btn">Restart Services</button>
+        <button onclick="refreshStatus()" class="btn secondary">Refresh Status</button>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Recent Logs</h2>
+    
+    <div class="log-viewer">
+        {% for log in recent_logs %}
+            {{ log|nl2br }}
+        {% endfor %}
+    </div>
+    
+    <div style="margin-top: 1rem;">
+        <button onclick="refreshLogs()" class="btn secondary">Refresh Logs</button>
+        <button onclick="downloadLogs()" class="btn secondary">Download Logs</button>
+    </div>
+</div>
+
+<div class="card">
+    <h2>System Information</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div>
+            <h3>🐳 Docker Container</h3>
+            <table class="table" style="font-size: 0.9rem;">
+                <tr>
+                    <td><strong>Image:</strong></td>
+                    <td>mail-bridge:latest</td>
+                </tr>
+                <tr>
+                    <td><strong>Started:</strong></td>
+                    <td>{{ moment()|default('Unknown') }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Memory:</strong></td>
+                    <td>512 MB limit</td>
+                </tr>
+                <tr>
+                    <td><strong>CPU:</strong></td>
+                    <td>512 shares</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div>
+            <h3>📁 Storage</h3>
+            <table class="table" style="font-size: 0.9rem;">
+                <tr>
+                    <td><strong>Config:</strong></td>
+                    <td>/config</td>
+                </tr>
+                <tr>
+                    <td><strong>Mail Data:</strong></td>
+                    <td>/maildata</td>
+                </tr>
+                <tr>
+                    <td><strong>Logs:</strong></td>
+                    <td>/logs</td>
+                </tr>
+                <tr>
+                    <td><strong>Scripts:</strong></td>
+                    <td>/scripts</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div>
+            <h3>🔧 Configuration</h3>
+            <table class="table" style="font-size: 0.9rem;">
+                <tr>
+                    <td><strong>Accounts:</strong></td>
+                    <td>{{ config.accounts|length if config else 0 }} configured</td>
+                </tr>
+                <tr>
+                    <td><strong>Filter Rules:</strong></td>
+                    <td>{{ config.filter_rules|length if config else 0 }} active</td>
+                </tr>
+                <tr>
+                    <td><strong>Check Interval:</strong></td>
+                    <td>{{ config.settings.check_interval if config else 300 }} seconds</td>
+                </tr>
+                <tr>
+                    <td><strong>Push Notifications:</strong></td>
+                    <td>{{ 'Enabled' if config.settings.push_notifications.enabled else 'Disabled' if config else 'Unknown' }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Troubleshooting</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div>
+            <h3>🔍 Common Issues</h3>
+            <ul>
+                <li><strong>Fetchmail not running:</strong> Check configuration and restart services</li>
+                <li><strong>Connection errors:</strong> Verify POP3 settings and passwords</li>
+                <li><strong>No emails received:</strong> Check if emails exist on server</li>
+                <li><strong>High memory usage:</strong> Restart container or adjust limits</li>
+            </ul>
+        </div>
+        
+        <div>
+            <h3>🛠️ Debug Commands</h3>
+            <ul>
+                <li><strong>Test connection:</strong> Use Test button on Accounts page</li>
+                <li><strong>View logs:</strong> Check Recent Logs section above</li>
+                <li><strong>Manual fetch:</strong> <code>docker exec mail-bridge fetchmail -v</code></li>
+                <li><strong>Check config:</strong> <code>docker exec mail-bridge python3 /scripts/test_config.py</code></li>
+            </ul>
+        </div>
+        
+        <div>
+            <h3>📞 Support</h3>
+            <ul>
+                <li><strong>Documentation:</strong> Check README.md</li>
+                <li><strong>Issues:</strong> GitHub repository</li>
+                <li><strong>Logs:</strong> Download for detailed analysis</li>
+                <li><strong>Backup:</strong> Regular /maildata backups recommended</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function restartServices() {
+    if (confirm('Are you sure you want to restart the mail services? This will temporarily interrupt email processing.')) {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        
+        btn.disabled = true;
+        btn.textContent = 'Restarting...';
+        
+        fetch('/api/restart', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Services restarted successfully: ' + data.message);
+                    location.reload();
+                } else {
+                    alert('Failed to restart services: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Error restarting services: ' + error);
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            });
+    }
+}
+
+function refreshStatus() {
+    location.reload();
+}
+
+function refreshLogs() {
+    location.reload();
+}
+
+function downloadLogs() {
+    // This would trigger a log download
+    alert('Log download functionality to be implemented');
+}
+</script>
+{% endblock %}

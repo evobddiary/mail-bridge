@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Accounts - MailDocker{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>POP3 Accounts</h2>
+        <a href="{{ url_for('add_account') }}" class="btn">Add New Account</a>
+    </div>
+    
+    {% if accounts %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email Address</th>
+                    <th>POP3 Server</th>
+                    <th>IMAP User</th>
+                    <th>SSL</th>
+                    <th>Keep</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                <tr>
+                    <td><strong>{{ account.name }}</strong></td>
+                    <td>{{ account.user }}</td>
+                    <td>{{ account.pop_server }}:{{ account.get('pop_port', 995) }}</td>
+                    <td>{{ account.imap_user }}</td>
+                    <td>
+                        {% if account.get('ssl', True) %}
+                            <span class="status-badge active">Enabled</span>
+                        {% else %}
+                            <span class="status-badge inactive">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if account.get('keep', True) %}
+                            <span class="status-badge active">Yes</span>
+                        {% else %}
+                            <span class="status-badge inactive">No</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if account.get('enabled', True) %}
+                            <span class="status-badge active">Active</span>
+                        {% else %}
+                            <span class="status-badge inactive">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="actions">
+                            <a href="{{ url_for('edit_account', account_name=account.name) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Edit</a>
+                            <button onclick="testConnection('{{ account.name }}')" class="btn secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Test</button>
+                            <button onclick="confirmDelete('{{ account.name }}')" class="btn danger" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert info">
+            <h3>No accounts configured</h3>
+            <p>You haven't set up any POP3 accounts yet. Add your first account to start processing emails.</p>
+            <div style="margin-top: 1rem;">
+                <a href="{{ url_for('add_account') }}" class="btn">Add Your First Account</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Account Configuration Guide</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div>
+            <h3>Gmail Settings</h3>
+            <ul>
+                <li><strong>POP3 Server:</strong> pop.gmail.com</li>
+                <li><strong>Port:</strong> 995 (SSL)</li>
+                <li><strong>Note:</strong> Enable "POP3 access" in Gmail settings first</li>
+                <li><strong>Authentication:</strong> Use App Password if 2FA is enabled</li>
+            </ul>
+        </div>
+        
+        <div>
+            <h3>Outlook Settings</h3>
+            <ul>
+                <li><strong>POP3 Server:</strong> pop-mail.outlook.com</li>
+                <li><strong>Port:</strong> 995 (SSL)</li>
+                <li><strong>Note:</strong> Enable POP access in Outlook settings</li>
+                <li><strong>Authentication:</strong> Regular password or App Password</li>
+            </ul>
+        </div>
+        
+        <div>
+            <h3>Generic Settings</h3>
+            <ul>
+                <li><strong>Server:</strong> Check your email provider's documentation</li>
+                <li><strong>Ports:</strong> 995 (SSL) or 110 (non-SSL)</li>
+                <li><strong>SSL:</strong> Recommended for security</li>
+                <li><strong>Keep:</strong> Keep emails on server after fetching</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

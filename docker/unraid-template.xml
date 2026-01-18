@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>mail-bridge</Name>
+  <Repository>mail-bridge:latest</Repository>
+  <Registry>https://github.com/your-repo/mail-bridge</Registry>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  
+  <Support>https://github.com/your-repo/mail-bridge/issues</Support>
+  <Project>https://github.com/your-repo/mail-bridge</Project>
+  <Overview>MailDocker - POP3 to IMAP bridge with email processing and filtering</Overview>
+  
+  <Category>Productivity: Mail:</Category>
+  
+  <WebUI></WebUI>
+  <TemplateURL></TemplateURL>
+  <Icon>https://raw.githubusercontent.com/your-repo/mail-bridge/main/icon.png</Icon>
+  
+  <Config Name="Config Path" Target="/config" Default="/mnt/user/appdata/mail-bridge/config" Mode="rw" Description="Container Path: /config" Type="Path" Display="always" Required="true" />
+  <Config Name="Mail Data Path" Target="/maildata" Default="/mnt/user/appdata/mail-bridge/maildata" Mode="rw" Description="Container Path: /maildata" Type="Path" Display="always" Required="true" />
+  <Config Name="Logs Path" Target="/logs" Default="/mnt/user/appdata/mail-bridge/logs" Mode="rw" Description="Container Path: /logs" Type="Path" Display="always" Required="true" />
+  
+  <!-- POP3 Passwords - Environment Variables -->
+  <Config Name="Personal POP Password" Target="PERSONAL_POP_PASS" Default="" Mode="" Description="Password for personal POP3 account" Type="Variable" Display="always" Required="false" />
+  <Config Name="Work POP Password" Target="WORK_POP_PASS" Default="" Mode="" Description="Password for work POP3 account" Type="Variable" Display="always" Required="false" />
+  <Config Name="Secondary POP Password" Target="SECONDARY_POP_PASS" Default="" Mode="" Description="Password for secondary POP3 account" Type="Variable" Display="always" Required="false" />
+  
+  <!-- Optional: Push Notification Settings -->
+  <Config Name="Push Webhook URL" Target="PUSH_WEBHOOK_URL" Default="" Mode="" Description="Webhook URL for push notifications" Type="Variable" Display="advanced" Required="false" />
+  <Config Name="Push Timeout" Target="PUSH_TIMEOUT" Default="5" Mode="" Description="Push notification timeout in seconds" Type="Variable" Display="advanced" Required="false" />
+  
+  <!-- Optional: Web Interface Port -->
+  <Config Name="Web Interface Port" Target="8787" Default="8787" Mode="tcp" Description="Web interface port for configuration" Type="Port" Display="advanced" Required="false" />
+  
+  <!-- Post Arguments -->
+  <PostArgs>/entrypoint.sh</PostArgs>
+  
+  <!-- CPU and Memory Limits -->
+  <ExtraParams>--memory=512m --cpu-shares=512</ExtraParams>
+  
+  <!-- Description -->
+  <Description>
+MailDocker is a POP3 to IMAP bridge that fetches emails from multiple POP3 accounts, processes them with custom filtering rules, and delivers them to a local IMAP server.
+
+Features:
+- Multiple POP3 account support
+- Advanced email filtering and folder organization
+- Push notification support
+- Web-based configuration interface (planned)
+- Email import from existing clients
+- Compatible with UNRAID and Docker
+
+Configuration:
+1. Edit /config/accounts.yaml to define your POP3 accounts
+2. Set environment variables for passwords
+3. Configure filtering rules as needed
+4. Connect your email client to the IMAP server
+
+For detailed setup instructions, see the project documentation.
+  </Description>
+</Container>

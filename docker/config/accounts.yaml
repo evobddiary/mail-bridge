@@ -1,0 +1,92 @@
+# MailDocker Accounts Configuration
+# This file defines POP3 accounts to fetch emails from
+
+accounts:
+  # Example account 1 - Personal email
+  - name: "personal"
+    pop_server: "pop.gmail.com"
+    pop_port: 995
+    user: "user@gmail.com"
+    password_env: "PERSONAL_POP_PASS"
+    ssl: true
+    keep: true  # Keep emails on server after fetching
+    imap_user: "user1"  # Local IMAP username
+    folders:
+      inbox: "INBOX"
+      invoices: "Invoices"
+      priority: "Priority"
+    
+  # Example account 2 - Work email
+  - name: "work"
+    pop_server: "pop.work-mail.com"
+    pop_port: 995
+    user: "employee@company.com"
+    password_env: "WORK_POP_PASS"
+    ssl: true
+    keep: true
+    imap_user: "user2"
+    folders:
+      inbox: "INBOX"
+      work: "Work"
+      reports: "Reports"
+    
+  # Example account 3 - Secondary email
+  - name: "secondary"
+    pop_server: "pop.example.com"
+    pop_port: 110
+    user: "user@example.com"
+    password_env: "SECONDARY_POP_PASS"
+    ssl: false
+    keep: false  # Delete from server after fetching
+    imap_user: "user3"
+    folders:
+      inbox: "INBOX"
+      archive: "Archive"
+
+# Global settings
+settings:
+  # Check interval in seconds (300 = 5 minutes)
+  check_interval: 300
+  
+  # Enable logging
+  enable_logging: true
+  
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  log_level: "INFO"
+  
+  # Push notification settings
+  push_notifications:
+    enabled: true
+    webhook_url: "https://your-push-endpoint.com/notify"
+    timeout: 5  # seconds
+    
+# Filtering rules (applied to all accounts unless overridden)
+filter_rules:
+  # Move invoices to Invoices folder
+  - name: "invoices"
+    conditions:
+      subject_contains: ["invoice", "receipt", "bill"]
+    action:
+      folder: "Invoices"
+      mark_as: "important"
+      push_notify: true
+      push_title: "Invoice Received"
+      
+  # Move important emails to Priority folder
+  - name: "priority_senders"
+    conditions:
+      from_contains: ["boss@company.com", "important@domain.com"]
+    action:
+      folder: "Priority"
+      mark_as: "important"
+      push_notify: true
+      push_title: "Important Email"
+      
+  # Move newsletters to Archive folder
+  - name: "newsletters"
+    conditions:
+      from_contains: ["newsletter", "noreply", "updates"]
+      subject_contains: ["newsletter", "update", "weekly"]
+    action:
+      folder: "Archive"
+      push_notify: false

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - MailDocker{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ total_accounts }}</div>
+        <div class="stat-label">Total Accounts</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ active_accounts }}</div>
+        <div class="stat-label">Active Accounts</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">📧</div>
+        <div class="stat-label">Emails Processed</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">🔄</div>
+        <div class="stat-label">System Status</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Quick Actions</h2>
+    <div class="actions">
+        <a href="{{ url_for('add_account') }}" class="btn">Add New Account</a>
+        <a href="{{ url_for('filters') }}" class="btn secondary">Manage Filters</a>
+        <a href="{{ url_for('status') }}" class="btn secondary">System Status</a>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Recent Accounts</h2>
+    {% if accounts %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Server</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts[:5] %}
+                <tr>
+                    <td>{{ account.name }}</td>
+                    <td>{{ account.user }}</td>
+                    <td>{{ account.pop_server }}</td>
+                    <td>
+                        {% if account.get('enabled', True) %}
+                            <span class="status-badge active">Active</span>
+                        {% else %}
+                            <span class="status-badge inactive">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="actions">
+                            <a href="{{ url_for('edit_account', account_name=account.name) }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Edit</a>
+                            <button onclick="testConnection('{{ account.name }}')" class="btn secondary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Test</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if accounts|length > 5 %}
+        <div style="margin-top: 1rem;">
+            <a href="{{ url_for('accounts') }}" class="btn">View All Accounts</a>
+        </div>
+        {% endif %}
+    {% else %}
+        <p>No accounts configured yet. <a href="{{ url_for('add_account') }}">Add your first account</a> to get started.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Getting Started</h2>
+    <ol>
+        <li><strong>Add your first POP3 account</strong> - Configure your email provider settings</li>
+        <li><strong>Test the connection</strong> - Verify that MailDocker can connect to your email server</li>
+        <li><strong>Set up filters</strong> - Create rules to automatically organize your emails</li>
+        <li><strong>Connect your email client</strong> - Use Thunderbird, iOS Mail, or any IMAP client</li>
+    </ol>
+    
+    <div style="margin-top: 1rem;">
+        <a href="{{ url_for('add_account') }}" class="btn">Get Started</a>
+    </div>
+</div>
+{% endblock %}
