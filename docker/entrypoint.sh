@@ -49,10 +49,18 @@ if pgrep dovecot > /dev/null; then
     sleep 2
 fi
 
-# Clean up any existing socket files
+# Aggressive cleanup of socket files
 echo "Cleaning up socket files..."
-rm -rf /var/run/dovecot/*
+find /var/run -name "*dovecot*" -type f -delete 2>/dev/null || true
+rm -rf /var/run/dovecot/* 2>/dev/null || true
+rm -f /var/run/dovecot/lmtp 2>/dev/null || true
 mkdir -p /var/run/dovecot
+
+# Check if socket still exists
+if [ -f /var/run/dovecot/lmtp ]; then
+    echo "WARNING: Socket file still exists after cleanup!"
+    ls -la /var/run/dovecot/
+fi
 
 # Start Dovecot
 echo "Starting Dovecot..."
