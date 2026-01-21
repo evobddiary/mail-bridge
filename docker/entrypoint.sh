@@ -51,15 +51,25 @@ fi
 
 # Aggressive cleanup of socket files
 echo "Cleaning up socket files..."
+echo "Current /var/run/dovecot/ contents:"
+ls -la /var/run/dovecot/ 2>/dev/null || echo "Directory doesn't exist"
+
 find /var/run -name "*dovecot*" -type f -delete 2>/dev/null || true
 rm -rf /var/run/dovecot/* 2>/dev/null || true
 rm -f /var/run/dovecot/lmtp 2>/dev/null || true
+
+# Force create directory with proper permissions
 mkdir -p /var/run/dovecot
+chmod 755 /var/run/dovecot
 
 # Check if socket still exists
 if [ -f /var/run/dovecot/lmtp ]; then
     echo "WARNING: Socket file still exists after cleanup!"
     ls -la /var/run/dovecot/
+    echo "Attempting to remove with force..."
+    rm -f /var/run/dovecot/lmtp
+else
+    echo "Socket cleanup successful"
 fi
 
 # Start Dovecot
