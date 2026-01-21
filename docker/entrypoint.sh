@@ -85,16 +85,22 @@ fi
 echo "Final check before starting Dovecot:"
 ls -la /var/run/dovecot/ 2>/dev/null || echo "Directory empty"
 
-# Start Dovecot
+# Check for any remaining Dovecot processes
+echo "Checking for any remaining Dovecot processes:"
+ps aux | grep dovecot || echo "No Dovecot processes found"
+
+# Start Dovecot with verbose output
 echo "Starting Dovecot..."
 dovecot -c /config/dovecot.conf
 
-# Wait a moment and check if Dovecot started successfully
+# Check if Dovecot started successfully
 sleep 3
 if pgrep dovecot > /dev/null; then
     echo "Dovecot started successfully"
 else
-    echo "Dovecot failed to start"
+    echo "Dovecot failed to start, checking for errors..."
+    echo "Checking /var/run/dovecot/ after failed start:"
+    ls -la /var/run/dovecot/ 2>/dev/null || echo "Directory empty"
 fi
 
 # 6. Стартиране на web интерфейса (background)
