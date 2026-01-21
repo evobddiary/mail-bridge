@@ -81,6 +81,10 @@ else
     echo "Socket cleanup successful"
 fi
 
+# Final check right before starting Dovecot
+echo "Final check before starting Dovecot:"
+ls -la /var/run/dovecot/ 2>/dev/null || echo "Directory empty"
+
 # Start Dovecot
 echo "Starting Dovecot..."
 dovecot -c /config/dovecot.conf
