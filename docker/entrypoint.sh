@@ -3,6 +3,11 @@ set -e
 
 echo "=== mail-bridge starting ==="
 
+# 0. Check Dovecot version
+echo "Checking Dovecot version..."
+dovecot --version 2>/dev/null || echo "dovecot command not available"
+dpkg -l | grep dovecot | head -5
+
 # 1. Generate fetchmail configuration from YAML
 echo "Generating fetchmail configuration..."
 python3 /scripts/generate_config.py
