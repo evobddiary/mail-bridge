@@ -31,6 +31,11 @@ chmod -R 755 /maildata
 
 # 5. Стартиране на dovecot
 echo "Starting dovecot..."
+echo "Dovecot version information:"
+dovecot --version 2>/dev/null || echo "dovecot command not found"
+doveconf --version 2>/dev/null || echo "doveconf version check failed"
+echo "Configuration file:"
+cat /config/dovecot.conf
 dovecot -c /config/dovecot.conf
 
 # 6. Стартиране на web интерфейса (background)
