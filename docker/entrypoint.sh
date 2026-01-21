@@ -42,9 +42,17 @@ doveconf --version 2>/dev/null || echo "doveconf version check failed"
 echo "Configuration file:"
 cat /config/dovecot.conf
 
-# Clean up any existing socket files
-rm -f /var/run/dovecot/lmtp
+# Stop any existing Dovecot processes
+echo "Stopping any existing Dovecot processes..."
+pkill -9 dovecot 2>/dev/null || true
 
+# Clean up any existing socket files
+echo "Cleaning up socket files..."
+rm -rf /var/run/dovecot/*
+mkdir -p /var/run/dovecot
+
+# Start Dovecot
+echo "Starting Dovecot..."
 dovecot -c /config/dovecot.conf
 
 # 6. Стартиране на web интерфейса (background)
