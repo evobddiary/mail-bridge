@@ -84,11 +84,10 @@ mkdir -p "$MAILDATA_DIR"
 mkdir -p "$LOGS_DIR"
 mkdir -p "$CONFIG_DIR"
 
-# Fix permissions
+# Fix permissions - only scripts should be executable
 print_status "Setting permissions..."
-chmod -R 755 "$DOCKER_DIR"
-chmod +x "$DOCKER_DIR/entrypoint.sh"
-chmod +x "$DOCKER_DIR/build.sh"
+chmod 644 "$DOCKER_DIR"/*.md "$DOCKER_DIR"/*.conf "$DOCKER_DIR"/*.yaml "$DOCKER_DIR"/*.yml "$DOCKER_DIR"/*.xml "$DOCKER_DIR"/Dockerfile* 2>/dev/null || true
+chmod 755 "$DOCKER_DIR"/*.sh "$DOCKER_DIR"/scripts/*.py 2>/dev/null || true
 
 # Build the Docker image
 print_status "Building Docker image..."
