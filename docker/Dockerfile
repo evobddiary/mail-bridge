@@ -37,7 +37,4 @@ COPY web/ /app/web/
 RUN chmod +x /entrypoint.sh && chmod +x /scripts/*.py
 
 # 6. Това се изпълнява при старт на контейнера
-#CMD ["/entrypoint.sh"]
-
-# По подразбиране – интерактивен shell (за дебъг)
-CMD ["bash"]
+CMD ["/entrypoint.sh"]
