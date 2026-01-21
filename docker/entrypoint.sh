@@ -42,9 +42,12 @@ doveconf --version 2>/dev/null || echo "doveconf version check failed"
 echo "Configuration file:"
 cat /config/dovecot.conf
 
-# Stop any existing Dovecot processes
-echo "Stopping any existing Dovecot processes..."
-pkill -9 dovecot 2>/dev/null || true
+# Check if Dovecot is already running
+if pgrep dovecot > /dev/null; then
+    echo "Dovecot is already running, stopping it first..."
+    pkill -9 dovecot 2>/dev/null || true
+    sleep 2
+fi
 
 # Clean up any existing socket files
 echo "Cleaning up socket files..."
@@ -54,6 +57,14 @@ mkdir -p /var/run/dovecot
 # Start Dovecot
 echo "Starting Dovecot..."
 dovecot -c /config/dovecot.conf
+
+# Wait a moment and check if Dovecot started successfully
+sleep 3
+if pgrep dovecot > /dev/null; then
+    echo "Dovecot started successfully"
+else
+    echo "Dovecot failed to start"
+fi
 
 # 6. Стартиране на web интерфейса (background)
 echo "Starting web interface..."
