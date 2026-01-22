@@ -195,13 +195,29 @@ def main():
         
         lda_cmd = None
         for path in lda_paths:
-            if os.path.exists(path) or path == "dovecot-lda":
+            logger.info(f"Checking for dovecot-lda at: {path}")
+            if os.path.exists(path):
                 lda_cmd = path
+                logger.info(f"Found dovecot-lda at: {path}")
                 break
+            elif path == "dovecot-lda":
+                # Check if it's in PATH
+                result = subprocess.run(["which", "dovecot-lda"], capture_output=True, text=True)
+                if result.returncode == 0:
+                    lda_cmd = "dovecot-lda"
+                    logger.info(f"Found dovecot-lda in PATH at: {result.stdout.strip()}")
+                    break
         
         if lda_cmd is None:
+            logger.error("dovecot-lda not found in any standard location")
+            # List what's actually available
+            for path in ["/usr/lib/dovecot", "/usr/libexec/dovecot", "/usr/bin"]:
+                if os.path.exists(path):
+                    files = os.listdir(path)
+                    logger.info(f"Files in {path}: {[f for f in files if 'dovecot' in f]}")
             raise FileNotFoundError("dovecot-lda not found in any standard location")
             
+        logger.info(f"Using dovecot-lda command: {lda_cmd}")
         proc = subprocess.Popen(
             [
                 lda_cmd,
