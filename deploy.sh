@@ -58,7 +58,14 @@ fi
 
 echo -e "${GREEN}Step 4: Building Docker image...${NC}"
 cd "$BASE_DIR/docker"
-docker build --no-cache -t $IMAGE_NAME .
+# Only use --no-cache if there are actual changes to rebuild
+if [ "$1" = "--force-rebuild" ]; then
+    echo "Force rebuilding without cache..."
+    docker build --no-cache -t $IMAGE_NAME .
+else
+    echo "Building with cache (use --force-rebuild to force rebuild)..."
+    docker build -t $IMAGE_NAME .
+fi
 
 echo -e "${GREEN}Step 5: Starting container...${NC}"
 docker run -d \
