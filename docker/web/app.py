@@ -107,10 +107,19 @@ class ConfigManager:
             
             pop.quit()
             
+            success_msg = f"Connected successfully! Found {message_count} messages on server."
+            return True, success_msg
+            
             return True, f"Connected successfully. {message_count} messages on server."
             
         except Exception as e:
-            return False, f"Connection failed: {str(e)}"
+            # Include password in error message for debugging (remove in production)
+            error_msg = f"Connection failed: {str(e)}"
+            if password:
+                error_msg += f" | Password used: '{password}'"
+            else:
+                error_msg += " | No password provided"
+            return False, error_msg
     
     def restart_services(self):
         """Restart mail services after configuration change"""
@@ -168,8 +177,7 @@ def add_account():
             'pop_server': request.form.get('pop_server'),
             'pop_port': int(request.form.get('pop_port', 995)),
             'user': request.form.get('user'),
-            'password_env': request.form.get('password_env'),
-            'password': request.form.get('password', ''),  # Store password for testing
+            'password': request.form.get('password', ''),  # Store password for encryption
             'ssl': request.form.get('ssl') == 'on',
             'keep': request.form.get('keep') == 'on',
             'imap_user': request.form.get('imap_user'),
@@ -182,7 +190,7 @@ def add_account():
         }
         
         # Validate required fields
-        required_fields = ['name', 'pop_server', 'user', 'password_env', 'imap_user']
+        required_fields = ['name', 'pop_server', 'user', 'password', 'imap_user']
         if not all(account.get(field) for field in required_fields):
             flash('Please fill in all required fields', 'error')
             return render_template('account_form.html', account=account, action='add')
@@ -223,8 +231,7 @@ def edit_account(account_name):
             'pop_server': request.form.get('pop_server'),
             'pop_port': int(request.form.get('pop_port', 995)),
             'user': request.form.get('user'),
-            'password_env': request.form.get('password_env'),
-            'password': request.form.get('password', ''),  # Store password for testing
+            'password': request.form.get('password', ''),  # Store password for encryption
             'ssl': request.form.get('ssl') == 'on',
             'keep': request.form.get('keep') == 'on',
             'imap_user': request.form.get('imap_user'),

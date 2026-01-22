@@ -32,15 +32,9 @@
         </div>
         
         <div class="form-group">
-            <label for="password_env">Password Environment Variable *</label>
-            <input type="text" id="password_env" name="password_env" value="{{ account.password_env or '' }}" required>
-            <small>Environment variable name containing the password (e.g., PERSONAL_POP_PASS)</small>
-        </div>
-        
-        <div class="form-group">
-            <label for="password">Password (for testing only)</label>
-            <input type="password" id="password" name="password" value="{{ account.password or '' }}">
-            <small>Optional: Store password here for testing. For production, use environment variables instead.</small>
+            <label for="password">Password *</label>
+            <input type="password" id="password" name="password" value="{{ account.password or '' }}" required>
+            <small>Your email password. Will be encrypted and stored securely in the configuration.</small>
         </div>
         
         <div class="form-group">
