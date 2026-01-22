@@ -38,6 +38,12 @@
         </div>
         
         <div class="form-group">
+            <label for="password">Password (for testing only)</label>
+            <input type="password" id="password" name="password" value="{{ account.password or '' }}">
+            <small>Optional: Store password here for testing. For production, use environment variables instead.</small>
+        </div>
+        
+        <div class="form-group">
             <label for="imap_user">Local IMAP User *</label>
             <input type="text" id="imap_user" name="imap_user" value="{{ account.imap_user or '' }}" required>
             <small>Username for accessing emails via IMAP (e.g., user1, personal)</small>

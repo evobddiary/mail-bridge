@@ -58,11 +58,27 @@ class ConfigManager:
             pop_server = account.get('pop_server')
             pop_port = account.get('pop_port', 995)
             user = account.get('user')
-            password = os.environ.get(account.get('password_env', ''))
+            password_env = account.get('password_env', '')
             use_ssl = account.get('ssl', True)
             
+            # Try to get password from environment variable first
+            password = os.environ.get(password_env, '')
+            
+            # If no env var, check if password is stored directly in account (for testing)
+            if not password and 'password' in account:
+                password = account.get('password', '')
+                logger.warning(f"Using password from config for testing (not recommended for production)")
+            
             if not all([pop_server, user, password]):
-                return False, "Missing required fields"
+                missing = []
+                if not pop_server: missing.append("POP3 server")
+                if not user: missing.append("username") 
+                if not password: 
+                    if password_env:
+                        missing.append(f"environment variable '{password_env}' (not set)")
+                    else:
+                        missing.append("password")
+                return False, f"Missing required fields: {', '.join(missing)}"
             
             if use_ssl:
                 pop = poplib.POP3_SSL(pop_server, pop_port)
@@ -140,6 +156,7 @@ def add_account():
             'pop_port': int(request.form.get('pop_port', 995)),
             'user': request.form.get('user'),
             'password_env': request.form.get('password_env'),
+            'password': request.form.get('password', ''),  # Store password for testing
             'ssl': request.form.get('ssl') == 'on',
             'keep': request.form.get('keep') == 'on',
             'imap_user': request.form.get('imap_user'),
@@ -194,6 +211,7 @@ def edit_account(account_name):
             'pop_port': int(request.form.get('pop_port', 995)),
             'user': request.form.get('user'),
             'password_env': request.form.get('password_env'),
+            'password': request.form.get('password', ''),  # Store password for testing
             'ssl': request.form.get('ssl') == 'on',
             'keep': request.form.get('keep') == 'on',
             'imap_user': request.form.get('imap_user'),
