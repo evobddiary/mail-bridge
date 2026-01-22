@@ -58,7 +58,7 @@ fi
 
 echo -e "${GREEN}Step 4: Building Docker image...${NC}"
 cd "$BASE_DIR/docker"
-docker build -t $IMAGE_NAME .
+docker build --no-cache -t $IMAGE_NAME .
 
 echo -e "${GREEN}Step 5: Starting container...${NC}"
 docker run -d \
