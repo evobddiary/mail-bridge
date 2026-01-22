@@ -5,11 +5,14 @@ Flask application for managing POP3 accounts and configuration
 """
 
 import os
+import sys
 import yaml
 import subprocess
 import logging
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from datetime import datetime
+
+# Add scripts to path for imports
 sys.path.append('/scripts')
 from password_manager import PasswordManager
 
