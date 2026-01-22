@@ -13,6 +13,11 @@ echo "========================================="
 CONTAINER_NAME="mail-bridge"
 IMAGE_NAME="mail-bridge:latest"
 BASE_DIR="/mnt/user/appdata/mail-bridge"
+DOCKER_DIR="/mnt/user/appdata/mail-bridge/docker"
+CONFIG_DIR="/mnt/user/appdata/mail-bridge/docker/config"
+MAILDATA_DIR="/mnt/user/appdata/mail-bridge/docker/maildata"
+LOGS_DIR="/mnt/user/appdata/mail-bridge/docker/logs"
+TEMPLATES_DIR="/mnt/user/appdata/mail-bridge/docker/templates"
 
 # Colors
 GREEN='\033[0;32m'
@@ -36,9 +41,20 @@ echo -e "${GREEN}Step 2: Stopping existing container...${NC}"
 docker stop $CONTAINER_NAME 2>/dev/null || true
 docker rm $CONTAINER_NAME 2>/dev/null || true
 
-echo -e "${GREEN}Step 3: Creating directories...${NC}"
-mkdir -p "$BASE_DIR/docker/maildata"
-mkdir -p "$BASE_DIR/docker/logs"
+echo "Step 3: Creating directories..."
+mkdir -v "$CONFIG_DIR" "$MAILDATA_DIR" "$LOGS_DIR" "$TEMPLATES_DIR"
+
+# Copy templates if they don't exist
+if [ ! -f "$CONFIG_DIR/accounts.yaml" ]; then
+    echo "Creating accounts.yaml from template..."
+    cp "$DOCKER_DIR/templates/accounts.yaml.template" "$CONFIG_DIR/accounts.yaml"
+fi
+
+if [ ! -f "$CONFIG_DIR/fetchmailrc" ]; then
+    echo "Creating empty fetchmailrc..."
+    touch "$CONFIG_DIR/fetchmailrc"
+    chmod 600 "$CONFIG_DIR/fetchmailrc"
+fi
 
 echo -e "${GREEN}Step 4: Building Docker image...${NC}"
 cd "$BASE_DIR/docker"
@@ -54,6 +70,7 @@ docker run -d \
     -v "$BASE_DIR/docker/config:/config" \
     -v "$BASE_DIR/docker/maildata:/maildata" \
     -v "$BASE_DIR/docker/logs:/logs" \
+    -v "$BASE_DIR/docker/templates:/templates:ro" \
     -v "$BASE_DIR/docker/scripts:/scripts:ro" \
     -v "$BASE_DIR/docker/web:/app/web:ro" \
     $IMAGE_NAME

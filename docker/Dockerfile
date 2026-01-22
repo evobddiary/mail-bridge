@@ -26,12 +26,13 @@ ENV PATH="$VENV_PATH/bin:$PATH"
 WORKDIR /app
 
 # 3. Създаваме нужните директории в контейнера
-RUN mkdir -p /config /scripts /maildata /logs
+RUN mkdir -p /config /scripts /maildata /logs /templates
 
 # 4. Копираме entrypoint и скриптовете
 COPY entrypoint.sh /entrypoint.sh
 COPY scripts/ /scripts/
 COPY web/ /app/web/
+COPY templates/ /templates/
 
 # 5. Права за изпълнение
 RUN chmod +x /entrypoint.sh && chmod +x /scripts/*.py

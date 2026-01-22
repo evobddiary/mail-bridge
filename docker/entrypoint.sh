@@ -8,6 +8,20 @@ echo "Checking Dovecot version..."
 dovecot --version 2>/dev/null || echo "dovecot command not available"
 dpkg -l | grep dovecot | head -5
 
+# 0.5. Initialize configuration files if they don't exist
+echo "Checking configuration files..."
+if [ ! -f /config/accounts.yaml ]; then
+    echo "Creating accounts.yaml from template..."
+    cp /templates/accounts.yaml.template /config/accounts.yaml
+    echo "Please edit /config/accounts.yaml to configure your email accounts"
+fi
+
+if [ ! -f /config/fetchmailrc ]; then
+    echo "Creating empty fetchmailrc (will be generated from accounts.yaml)..."
+    touch /config/fetchmailrc
+    chmod 600 /config/fetchmailrc
+fi
+
 # 1. Generate fetchmail configuration from YAML
 echo "Generating fetchmail configuration..."
 python3 /scripts/generate_config.py

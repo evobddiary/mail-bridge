@@ -1,5 +1,6 @@
-# MailDocker Accounts Configuration
+# MailDocker Accounts Configuration Template
 # This file defines POP3 accounts to fetch emails from
+# Copy this file to your config directory and modify as needed
 
 accounts:
   # Example account 1 - Personal email
