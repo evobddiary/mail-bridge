@@ -42,7 +42,7 @@ docker stop $CONTAINER_NAME 2>/dev/null || true
 docker rm $CONTAINER_NAME 2>/dev/null || true
 
 echo "Step 3: Creating directories..."
-mkdir -v "$CONFIG_DIR" "$MAILDATA_DIR" "$LOGS_DIR" "$TEMPLATES_DIR"
+mkdir -p "$CONFIG_DIR" "$MAILDATA_DIR" "$LOGS_DIR" "$TEMPLATES_DIR"
 
 # Copy templates if they don't exist
 if [ ! -f "$CONFIG_DIR/accounts.yaml" ]; then
