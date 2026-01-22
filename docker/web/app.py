@@ -8,9 +8,10 @@ import os
 import yaml
 import subprocess
 import logging
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
-from werkzeug.utils import secure_filename
+sys.path.append('/scripts')
+from password_manager import PasswordManager
 
 app = Flask(__name__)
 app.secret_key = 'mail-bridge-secret-key-change-in-production'
@@ -24,23 +25,44 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class ConfigManager:
-    def __init__(self, config_path=CONFIG_PATH):
-        self.config_path = config_path
+    def __init__(self):
+        self.config_path = CONFIG_PATH
+        self.password_manager = PasswordManager()
         
     def load_config(self):
         """Load configuration from YAML file"""
         try:
             with open(self.config_path, 'r') as f:
-                return yaml.safe_load(f)
+                config = yaml.safe_load(f)
+                # Decrypt passwords in accounts
+                if 'accounts' in config:
+                    for account in config['accounts']:
+                        if 'encrypted_password' in account:
+                            try:
+                                account['password'] = self.password_manager.decrypt(account['encrypted_password'])
+                            except Exception as e:
+                                logging.error(f"Failed to decrypt password for {account.get('name', 'unknown')}: {e}")
+                                account['password'] = ''
+                return config or {}
         except FileNotFoundError:
-            return {'accounts': [], 'filter_rules': [], 'settings': {}}
+            return {'accounts': [], 'settings': {}, 'filter_rules': []}
         except Exception as e:
-            logger.error(f"Error loading config: {e}")
-            return {'accounts': [], 'filter_rules': [], 'settings': {}}
+            logging.error(f"Error loading config: {e}")
+            return {'accounts': [], 'settings': {}, 'filter_rules': []}
     
     def save_config(self, config):
-        """Save configuration to YAML file"""
+        """Save configuration to YAML file with encrypted passwords"""
         try:
+            # Encrypt passwords before saving
+            if 'accounts' in config:
+                for account in config['accounts']:
+                    if 'password' in account and account['password']:
+                        # Encrypt the password
+                        encrypted = self.password_manager.encrypt(account['password'])
+                        account['encrypted_password'] = encrypted
+                        # Remove plain text password from saved config
+                        del account['password']
+            
             with open(self.config_path, 'w') as f:
                 yaml.dump(config, f, default_flow_style=False, indent=2)
             return True
@@ -58,26 +80,14 @@ class ConfigManager:
             pop_server = account.get('pop_server')
             pop_port = account.get('pop_port', 995)
             user = account.get('user')
-            password_env = account.get('password_env', '')
+            password = account.get('password', '')  # Password is already decrypted in load_config()
             use_ssl = account.get('ssl', True)
-            
-            # Try to get password from environment variable first
-            password = os.environ.get(password_env, '')
-            
-            # If no env var, check if password is stored directly in account (for testing)
-            if not password and 'password' in account:
-                password = account.get('password', '')
-                logger.warning(f"Using password from config for testing (not recommended for production)")
             
             if not all([pop_server, user, password]):
                 missing = []
                 if not pop_server: missing.append("POP3 server")
                 if not user: missing.append("username") 
-                if not password: 
-                    if password_env:
-                        missing.append(f"environment variable '{password_env}' (not set)")
-                    else:
-                        missing.append("password")
+                if not password: missing.append("password")
                 return False, f"Missing required fields: {', '.join(missing)}"
             
             if use_ssl:

@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     cron \
     && python3 -m venv $VENV_PATH \
-    && $VENV_PATH/bin/pip install --no-cache-dir requests pyyaml flask \
+    && $VENV_PATH/bin/pip install --no-cache-dir requests pyyaml flask cryptography \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
