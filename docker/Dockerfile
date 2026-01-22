@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     fetchmail \
     dovecot-imapd \
     dovecot-lmtpd \
+    dovecot-core \
     python3 \
     python3-venv \
     ca-certificates \

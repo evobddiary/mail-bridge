@@ -5,9 +5,14 @@ import email
 import subprocess
 import yaml
 import os
-import logging
+import sys
+import email
+import re
 import requests
 from datetime import datetime
+import logging
+import subprocess
+from pathlib import Path
 
 # Setup logging
 logging.basicConfig(
@@ -180,9 +185,26 @@ def main():
     
     # Deliver to dovecot
     try:
+        # Try different Dovecot LDA paths
+        lda_paths = [
+            "/usr/lib/dovecot/dovecot-lda",
+            "/usr/libexec/dovecot/dovecot-lda", 
+            "/usr/bin/dovecot-lda",
+            "dovecot-lda"
+        ]
+        
+        lda_cmd = None
+        for path in lda_paths:
+            if os.path.exists(path) or path == "dovecot-lda":
+                lda_cmd = path
+                break
+        
+        if lda_cmd is None:
+            raise FileNotFoundError("dovecot-lda not found in any standard location")
+            
         proc = subprocess.Popen(
             [
-                "dovecot-lda",
+                lda_cmd,
                 "-d", imap_user,
                 "-m", folder
             ],
