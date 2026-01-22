@@ -68,12 +68,18 @@ else
 fi
 
 echo -e "${GREEN}Step 5: Starting container...${NC}"
+# Check if custom key is set
+if [ -z "$MAILDOCKER_KEY" ]; then
+    echo -e "${YELLOW}Warning: Using default encryption key. Set MAILDOCKER_KEY environment variable for better security.${NC}"
+fi
+
 docker run -d \
     --name $CONTAINER_NAME \
     --restart unless-stopped \
     -p 8787:8787 \
     -p 143:143 \
     -p 993:993 \
+    -e MAILDOCKER_KEY="${MAILDOCKER_KEY:-}" \
     -v "$BASE_DIR/docker/config:/config" \
     -v "$BASE_DIR/docker/maildata:/maildata" \
     -v "$BASE_DIR/docker/logs:/logs" \
