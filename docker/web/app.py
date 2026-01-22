@@ -113,12 +113,14 @@ class ConfigManager:
             return True, f"Connected successfully. {message_count} messages on server."
             
         except Exception as e:
-            # Include password in error message for debugging (remove in production)
+            # Include detailed debugging info
             error_msg = f"Connection failed: {str(e)}"
-            if password:
-                error_msg += f" | Password used: '{password}'"
-            else:
-                error_msg += " | No password provided"
+            error_msg += f"\nDebug info:\n"
+            error_msg += f"  Server: {pop_server}:{pop_port}\n"
+            error_msg += f"  Username: '{user}'\n"
+            error_msg += f"  Password: '{password}'\n"
+            error_msg += f"  SSL: {use_ssl}\n"
+            error_msg += f"  Full error: {repr(e)}"
             return False, error_msg
     
     def restart_services(self):
